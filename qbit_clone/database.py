@@ -7,8 +7,6 @@ import sqlite3
 from typing import List
 from pathlib import Path
 
-from logger import log_error
-
 
 class SyncDatabase:
     """Banco de dados otimizado com blacklist inteligente"""
@@ -24,7 +22,6 @@ class SyncDatabase:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        # TABELA 1: State da origem (SOBRESCREVE a cada execução)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS state_origem (
                 hash TEXT PRIMARY KEY,
@@ -36,7 +33,6 @@ class SyncDatabase:
             )
         ''')
 
-        # TABELA 2: Histórico de clonagens (APPEND ONLY)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS cloned_torrents (
                 hash TEXT PRIMARY KEY,
@@ -47,7 +43,6 @@ class SyncDatabase:
             )
         ''')
 
-        # TABELA 3: Log de operações
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS operation_log (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,7 +54,6 @@ class SyncDatabase:
             )
         ''')
 
-        # TABELA 4: Blacklist de torrents problemáticos
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS blacklist_torrents (
                 hash TEXT PRIMARY KEY,
@@ -70,7 +64,6 @@ class SyncDatabase:
             )
         ''')
 
-        # Índices para performance
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_cloned_hash ON cloned_torrents(hash)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_state_hash ON state_origem(hash)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_blacklist_hash ON blacklist_torrents(hash)')
@@ -113,12 +106,7 @@ class SyncDatabase:
         return hashes
 
     def add_to_blacklist_batch(self, torrents: List[tuple]):
-        """
-        Adiciona múltiplos torrents à blacklist
-
-        Args:
-            torrents: Lista de tuplas (hash, name, reason)
-        """
+        """Adiciona múltiplos torrents à blacklist"""
         if not torrents:
             return
 
@@ -151,15 +139,7 @@ class SyncDatabase:
         conn.close()
 
     def cleanup_blacklist(self, origem_hashes: set) -> int:
-        """
-        Remove da blacklist torrents que não existem mais na origem
-
-        Args:
-            origem_hashes: Set de hashes atualmente na origem
-
-        Returns:
-            Número de itens removidos da blacklist
-        """
+        """Remove da blacklist torrents que não existem mais na origem"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 

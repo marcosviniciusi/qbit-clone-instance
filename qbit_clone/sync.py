@@ -2,22 +2,13 @@
 Módulo de operações de sincronização do qBittorrent Clone Tool
 """
 
-import sys
 import time
 
-sys.path.insert(0, '/etc/qbit-clone')
-
-try:
-    import config
-except ImportError:
-    print("❌ ERRO: /etc/qbit-clone/config.py não encontrado!")
-    sys.exit(1)
-
-from database import SyncDatabase
-from logger import log, log_error
+from qbit_clone.database import SyncDatabase
+from qbit_clone.logger import log, log_error
 
 
-def sync_categories(src, dst):
+def sync_categories(src, dst, config):
     """Sincroniza categorias"""
     log("\n📂 Sincronizando categorias...", 1)
 
@@ -41,7 +32,7 @@ def sync_categories(src, dst):
         log(f"  ⚠️  Erro: {e}", 0)
 
 
-def clone_torrent_verified(src, dst, torrent) -> bool:
+def clone_torrent_verified(src, dst, torrent, config) -> bool:
     """Clona torrent e confirma adição com force upload"""
     try:
         torrent_file = src.torrents_export(torrent_hash=torrent.hash)
@@ -89,7 +80,7 @@ def clone_torrent_verified(src, dst, torrent) -> bool:
         return False
 
 
-def delete_torrent_verified(dst, torrent) -> bool:
+def delete_torrent_verified(dst, torrent, config) -> bool:
     """Deleta torrent e confirma remoção"""
     try:
         delete_files = (config.CLEANUP_MODE == 'delete')
@@ -113,7 +104,7 @@ def delete_torrent_verified(dst, torrent) -> bool:
         return False
 
 
-def remove_unwanted_torrents(dst, db: SyncDatabase) -> dict:
+def remove_unwanted_torrents(dst, db: SyncDatabase, config) -> dict:
     """Remove torrents indesejados e adiciona à blacklist"""
     log("\n🚫 Removendo torrents indesejados...", 1)
 
@@ -172,13 +163,11 @@ def remove_unwanted_torrents(dst, db: SyncDatabase) -> dict:
 
             time.sleep(0.2)
 
-        # Atualiza banco
         if removed_batch:
             log(f"\n  💾 Atualizando banco ({len(removed_batch)} remoções)...", 1)
             db.remove_cloned_batch(removed_batch)
             log(f"  ✅ Banco atualizado", 1)
 
-        # Adiciona à blacklist
         if blacklist_batch:
             log(f"  🚷 Adicionando {len(blacklist_batch)} à blacklist...", 1)
             db.add_to_blacklist_batch(blacklist_batch)

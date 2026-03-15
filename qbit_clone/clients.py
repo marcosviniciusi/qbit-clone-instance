@@ -5,24 +5,13 @@ Módulo de conexão com instâncias qBittorrent
 import sys
 import urllib3
 
-sys.path.insert(0, '/etc/qbit-clone')
-
-try:
-    import config
-except ImportError:
-    print("❌ ERRO: /etc/qbit-clone/config.py não encontrado!")
-    sys.exit(1)
-
 try:
     from qbittorrentapi import Client
 except ImportError:
     print("❌ ERRO: pip install qbittorrent-api")
     sys.exit(1)
 
-from logger import log, log_error
-
-if not config.SRC_VERIFY_SSL or not config.DST_VERIFY_SSL:
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+from qbit_clone.logger import log, log_error
 
 
 def build_url(host: str, port: int, use_https: bool) -> str:
@@ -31,9 +20,12 @@ def build_url(host: str, port: int, use_https: bool) -> str:
     return f"{protocol}://{host}:{port}"
 
 
-def get_clients():
-    """Conecta nas instâncias"""
+def get_clients(config):
+    """Conecta nas instâncias. Recebe config como parâmetro."""
     log("🔌 Conectando...", 1)
+
+    if not config.SRC_VERIFY_SSL or not config.DST_VERIFY_SSL:
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     try:
         src = Client(

@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=65.0"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "qbit-clone"
+version = "5.1.0"
+description = "Sincronização inteligente entre instâncias qBittorrent"
+requires-python = ">=3.10"
+dependencies = [
+    "qbittorrent-api>=2023.1",
+]
+
+[project.optional-dependencies]
+otel = [
+    "opentelemetry-api",
+    "opentelemetry-sdk",
+    "opentelemetry-exporter-otlp",
+]
+
+[project.scripts]
+qbit-clone = "qbit_clone.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["qbit_clone*"]

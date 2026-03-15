@@ -2,19 +2,9 @@
 Módulo de filtros de torrents do qBittorrent Clone Tool
 """
 
-import sys
 
-sys.path.insert(0, '/etc/qbit-clone')
-
-try:
-    import config
-except ImportError:
-    print("❌ ERRO: /etc/qbit-clone/config.py não encontrado!")
-    sys.exit(1)
-
-
-def apply_filters(torrent) -> tuple:
-    """Aplica filtros configurados"""
+def apply_filters(torrent, config) -> tuple:
+    """Aplica filtros configurados. Recebe config como parâmetro."""
     if config.ONLY_SEEDING_STATE:
         if torrent.state not in config.VALID_SEEDING_STATES:
             return False, f"Estado {torrent.state} inválido"
